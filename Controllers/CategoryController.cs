@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Ecommerce_Web_API.DTOs;
 using Ecommerce_Web_API.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,22 +18,33 @@ namespace Ecommerce_Web_API.Controllers
         [HttpGet]
         public IActionResult GetCategories([FromQuery] string searchValue = "")
         {
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                var searchedCategories = categories
-                    .Where(c =>
-                        !string.IsNullOrEmpty(c.Name)
-                        && c.Name.Contains(searchValue, StringComparison.OrdinalIgnoreCase)
-                    )
-                    .ToList();
-                return Ok(searchedCategories);
-            }
-            return Ok(categories);
+            // if (!string.IsNullOrEmpty(searchValue))
+            // {
+            //     var searchedCategories = categories
+            //         .Where(c =>
+            //             !string.IsNullOrEmpty(c.Name)
+            //             && c.Name.Contains(searchValue, StringComparison.OrdinalIgnoreCase)
+            //         )
+            //         .ToList();
+            //     return Ok(searchedCategories);
+            // }
+
+            var categoryList = categories
+                .Select(c => new CategoryReadDto
+                {
+                    CategoryId = c.CategoryId,
+                    Name = c.Name,
+                    Description = c.Description,
+                    CreatedAt = c.CreatedAt,
+                })
+                .ToList();
+
+            return Ok(categoryList);
         }
 
         //POST: api/categories => Create Categories
         [HttpPost]
-        public IActionResult CreateCategories([FromBody] Category categoryData)
+        public IActionResult CreateCategories([FromBody] CategoryCreateDto categoryData)
         {
             if (string.IsNullOrEmpty(categoryData.Name))
             {
@@ -50,7 +62,16 @@ namespace Ecommerce_Web_API.Controllers
                     CreatedAt = DateTime.UtcNow,
                 };
                 categories.Add(newCategory);
-                return Created($"/api/categories/{newCategory.CategoryId}", newCategory);
+
+                var categoryReadDto = new CategoryReadDto
+                {
+                    CategoryId = Guid.NewGuid(),
+                    Name = newCategory.Name,
+                    Description = newCategory.Description,
+                    CreatedAt = newCategory.CreatedAt,
+                };
+
+                return Created($"/api/categories/{newCategory.CategoryId}", categoryReadDto);
             }
             else
             {
@@ -60,7 +81,10 @@ namespace Ecommerce_Web_API.Controllers
 
         //PUT: api/categories => Update Categories
         [HttpPut("{categoryId:guid}")]
-        public IActionResult UpdateCategoryByID([FromRoute] Guid categoryId, [FromBody] Category categoryData)
+        public IActionResult UpdateCategoryByID(
+            [FromRoute] Guid categoryId,
+            [FromBody] CategoryUpdateDto categoryData
+        )
         {
             if (categoryData == null)
             {
@@ -89,7 +113,6 @@ namespace Ecommerce_Web_API.Controllers
                 foundCategory.Description = categoryData.Description;
             }
             // Simulate delete logic
-            Console.WriteLine($"Category with ID {categoryData.CategoryId} updated.");
 
             return Ok(new { message = "Updated successfully" });
             // return Results.NoContent();
