@@ -18,17 +18,6 @@ namespace Ecommerce_Web_API.Controllers
         [HttpGet]
         public IActionResult GetCategories([FromQuery] string searchValue = "")
         {
-            // if (!string.IsNullOrEmpty(searchValue))
-            // {
-            //     var searchedCategories = categories
-            //         .Where(c =>
-            //             !string.IsNullOrEmpty(c.Name)
-            //             && c.Name.Contains(searchValue, StringComparison.OrdinalIgnoreCase)
-            //         )
-            //         .ToList();
-            //     return Ok(searchedCategories);
-            // }
-
             var categoryList = categories
                 .Select(c => new CategoryReadDto
                 {
@@ -46,37 +35,24 @@ namespace Ecommerce_Web_API.Controllers
         [HttpPost]
         public IActionResult CreateCategories([FromBody] CategoryCreateDto categoryData)
         {
-            if (string.IsNullOrEmpty(categoryData.Name))
+            var newCategory = new Category
             {
-                return BadRequest("Category Name required");
-            }
+                CategoryId = Guid.NewGuid(),
+                Name = categoryData.Name,
+                Description = categoryData.Description,
+                CreatedAt = DateTime.UtcNow,
+            };
+            categories.Add(newCategory);
 
-            if (categoryData.Name.Length > 2)
+            var categoryReadDto = new CategoryReadDto
             {
-                // Console.WriteLine($"{categoryData}");
-                var newCategory = new Category
-                {
-                    CategoryId = Guid.NewGuid(),
-                    Name = categoryData.Name,
-                    Description = categoryData.Description,
-                    CreatedAt = DateTime.UtcNow,
-                };
-                categories.Add(newCategory);
+                CategoryId = Guid.NewGuid(),
+                Name = newCategory.Name,
+                Description = newCategory.Description,
+                CreatedAt = newCategory.CreatedAt,
+            };
 
-                var categoryReadDto = new CategoryReadDto
-                {
-                    CategoryId = Guid.NewGuid(),
-                    Name = newCategory.Name,
-                    Description = newCategory.Description,
-                    CreatedAt = newCategory.CreatedAt,
-                };
-
-                return Created($"/api/categories/{newCategory.CategoryId}", categoryReadDto);
-            }
-            else
-            {
-                return BadRequest("Minimum name value 3");
-            }
+            return Created($"/api/categories/{newCategory.CategoryId}", categoryReadDto);
         }
 
         //PUT: api/categories => Update Categories
