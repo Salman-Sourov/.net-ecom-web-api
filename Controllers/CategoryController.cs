@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_Web_API.DTOs;
 using Ecommerce_Web_API.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce_Web_API.Controllers
@@ -28,7 +29,13 @@ namespace Ecommerce_Web_API.Controllers
                 })
                 .ToList();
 
-            return Ok(categoryList);
+            return Ok(
+                ApiResponse<List<CategoryReadDto>>.SuccessResponse(
+                    categoryList,
+                    200,
+                    "Categories returned successfully"
+                )
+            );
         }
 
         //POST: api/categories => Create Categories
@@ -52,7 +59,14 @@ namespace Ecommerce_Web_API.Controllers
                 CreatedAt = newCategory.CreatedAt,
             };
 
-            return Created($"/api/categories/{newCategory.CategoryId}", categoryReadDto);
+            return Created(
+                $"/api/categories/{newCategory.CategoryId}",
+                ApiResponse<CategoryReadDto>.SuccessResponse(
+                    categoryReadDto,
+                    201,
+                    "Category created successfully"
+                )
+            );
         }
 
         //PUT: api/categories => Update Categories
@@ -90,7 +104,9 @@ namespace Ecommerce_Web_API.Controllers
             }
             // Simulate delete logic
 
-            return Ok(new { message = "Updated successfully" });
+            return Ok(
+                ApiResponse<object>.SuccessResponse(null, 204, "Category updated successfully")
+            );
             // return Results.NoContent();
         }
 
@@ -106,7 +122,9 @@ namespace Ecommerce_Web_API.Controllers
                 return NotFound("Invalid categories");
             }
             categories.Remove(foundCategory);
-            return Ok(new { message = "Category deleted successfully" });
+            return Ok(
+                ApiResponse<object>.SuccessResponse(null, 204, "Category deleted successfully")
+            );
         }
     }
 }
